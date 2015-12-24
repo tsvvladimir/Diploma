@@ -76,7 +76,8 @@ def find_classifier():
                 curTraining.append(unlabeled[i])
                 unlabeled_copy.pop(i)
             except:
-                print "oops!", i, "unlabeled length", len(unlabeled)
+                pass
+                #print "oops!", i, "unlabeled length", len(unlabeled)
         unlabeled = unlabeled_copy
         #curTraining = list(set(curTraining) | set(res))
         #unlabeled = list(set(unlabeled) - set(res))
@@ -123,7 +124,7 @@ def find_classifier1():
     score = f1_score(t_real, t_pred, average='micro')
     scores.append(score)
     final_score = sum(scores)/len(scores)
-    print "f1 final score train set", final_score, "train_set length", len(curTraining)
+    print "random sampling f1 final score train set", final_score, "train_set length", len(curTraining)
 
     for t in range(1, betha):
         scores = []
@@ -156,11 +157,11 @@ def find_classifier1():
 
 
         labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
-        print labels
+        #print labels
         c = Counter(labels)
-        for cluster_number in range(n_clusters):
-            print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
-        print "cluster centers", pipelinecluster.named_steps['clusterer'].labels_
+        #for cluster_number in range(n_clusters):
+        #    print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
+        #print "cluster centers", pipelinecluster.named_steps['clusterer'].labels_
 
         clust_idx = {}
 
@@ -171,12 +172,13 @@ def find_classifier1():
             else:
                 clust_idx[cluster].append(idx)
 
-        print clust_idx
+        #print clust_idx
 
         res = []
         for value in clust_idx.itervalues():
-            res.append(choice(value, min(gamma / n_clusters, len(value))))
+            res.extend(choice(value, min(gamma / n_clusters, len(value))))
 
+        #print "res", res
 
         unlabeled_copy = list(unlabeled)
         for i in res:
@@ -184,7 +186,8 @@ def find_classifier1():
                 curTraining.append(unlabeled[i])
                 unlabeled_copy.pop(i)
             except:
-                print "oops!", i, "unlabeled length", len(unlabeled)
+                pass
+                #print "oops!", i, "unlabeled length", len(unlabeled)
         unlabeled = unlabeled_copy
 
         #curTraining = list(set(curTraining) | set(res))
@@ -201,7 +204,7 @@ def find_classifier1():
         score = f1_score(t_real, t_pred, average='micro')
         scores.append(score)
         final_score = sum(scores)/len(scores)
-        print "f1 final score train set", final_score, "train_set length", len(curTraining)
+        print "cluster sampling f1 final score train set", final_score, "train_set length", len(curTraining)
 
 
 
@@ -226,7 +229,7 @@ print "f1 final score without active", 0.861722278887, "train_set length", len(t
 
 print "start fitting random sampling"
 
-#find_classifier()
+find_classifier()
 
 print "start fitting cluster sampling"
 
