@@ -6,6 +6,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
+from collections import defaultdict
 from sklearn.cluster import KMeans
 from collections import Counter
 from sklearn.multiclass import OneVsRestClassifier
@@ -146,22 +147,48 @@ def find_classifier1():
         #curTraining = list(set(curTraining) | set(res))
         #unlabeled = list(set(unlabeled) - set(res))
 
-        n_clusters = 8
+        n_clusters = 10
         pipelinecluster = Pipeline([
             ('vect', CountVectorizer()),
             ('tfidf', TfidfTransformer()),
-            #('clusterer', KMeans(n_clusters=n_clusters)),])
-            ('clusterer', AffinityPropagation()),])
+            ('clusterer', KMeans(n_clusters=n_clusters)),])
+            #('clusterer', AffinityPropagation()),])
 
 
-        pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
-        #print labels
-        #c = Counter(labels)
-        #for cluster_number in range(n_clusters):
-        #    print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
-        print "cluster centers", len(pipelinecluster.named_steps['clusterer'].cluster_centers_indices_)
+        labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
+        print labels
+        c = Counter(labels)
+        for cluster_number in range(n_clusters):
+            print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
+        print "cluster centers", pipelinecluster.named_steps['clusterer'].labels_
+
+        clust_idx = {}
+
+        #clust_id = {cluster:id for cluster, id in zip(labels, unlabeled)}
+        for cluster, idx in zip(labels, range(len(unlabeled))):
+            if clust_idx.get(cluster) == None:
+                clust_idx.__setitem__(cluster, [idx])
+            else:
+                clust_idx[cluster].append(idx)
+
+        print clust_idx
+
+        res = []
+        for value in clust_idx.itervalues():
+            res.append(choice(value, min(gamma / n_clusters, len(value))))
 
 
+        unlabeled_copy = list(unlabeled)
+        for i in res:
+            try:
+                curTraining.append(unlabeled[i])
+                unlabeled_copy.pop(i)
+            except:
+                print "oops!", i, "unlabeled length", len(unlabeled)
+        unlabeled = unlabeled_copy
+
+        #curTraining = list(set(curTraining) | set(res))
+        #unlabeled = list(set(unlabeled) - set(res))
         #fit classifier
 
         mb = MultiLabelBinarizer()
