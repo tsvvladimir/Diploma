@@ -6,6 +6,8 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
+import pickle
+import copy
 from numpy.random import choice
 
 train_id = []
@@ -20,15 +22,17 @@ for id in coll_help.reuters.fileids():
     else:
         test_id.append(id)
 
+print len(id_cat)
+
 pipeline = Pipeline([
     ('vect', CountVectorizer()),
     ('tfidf', TfidfTransformer()),
     ('clf', DecisionTreeClassifier()),])
 
 def find_classifier():
-    alpha = 100
-    betha = 20
-    gamma = 50
+    alpha = 100 #initial training set
+    betha = 50 #number of iterations
+    gamma = 50 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
 
@@ -45,21 +49,30 @@ def find_classifier():
         score = f1_score(t_real, t_pred, average='micro')
         scores.append(score)
     final_score = sum(scores)/len(scores)
-    print "f1 final score train set", final_score
+    print "f1 final score train set", final_score, "train_set length", len(curTraining)
 
     for t in range(1, betha):
         scores = []
         #add texts to training set
 
         #res
-        res = choice(unlabeled, gamma)
-        #ranking = map(lambda id: pipeline.predict(coll_help.reuters.raw(id)), unlabeled)
-        #for id in unlabeled:
-        #    rank = pipeline.predict(coll_help.reuters.raw(id))
-        #    print "rank", mb.inverse_transform(rank)
-        #print "ranking", ranking
-        curTraining = list(set(curTraining) | set(res))
-        unlabeled = list(set(unlabeled) - set(res))
+
+        #print "score for zero unlabeled", pipeline.score(coll_help.reuters.raw(unlabeled[0]), id_cat[unlabeled[0]])
+
+        res = np.random.randint(0, len(unlabeled), gamma)
+
+        #print "gamma was:", gamma, "choice len", len(res)
+        unlabeled_copy = list(unlabeled)
+        for i in res:
+            try:
+                curTraining.append(unlabeled[i])
+                unlabeled_copy.pop(i)
+            except:
+                print "oops!", i, "unlabeled length", len(unlabeled)
+        unlabeled = unlabeled_copy
+        #curTraining = list(set(curTraining) | set(res))
+        #unlabeled = list(set(unlabeled) - set(res))
+
 
         #fit classifier
         for i in range(0, 5):
@@ -73,12 +86,76 @@ def find_classifier():
             score = f1_score(t_real, t_pred, average='micro')
             scores.append(score)
         final_score = sum(scores)/len(scores)
-        print "f1 final score train set", final_score
+        print "f1 final score train set", final_score, "train_set length", len(curTraining)
+
+
+def find_classifier1():
+    alpha = 100 #initial training set
+    betha = 50 #number of iterations
+    gamma = 50 #number of sampling
+    curTraining = train_id[:alpha]
+    unlabeled = train_id[alpha:]
+
+    scores = []
+    #fit classifier
+    for i in range(0, 5):
+        mb = MultiLabelBinarizer()
+        pipeline.fit([coll_help.reuters.raw(id) for id in curTraining], mb.fit_transform([id_cat[id] for id in curTraining]))
+        predicted = pipeline.predict([coll_help.reuters.raw(id) for id in test_id])
+        pred =  np.array(mb.inverse_transform(predicted))
+        mb1 = MultiLabelBinarizer()
+        t_real = mb1.fit_transform([id_cat[id] for id in test_id])
+        t_pred = mb1.transform(pred)
+        score = f1_score(t_real, t_pred, average='micro')
+        scores.append(score)
+    final_score = sum(scores)/len(scores)
+    print "f1 final score train set", final_score, "train_set length", len(curTraining)
+
+    for t in range(1, betha):
+        scores = []
+        #add texts to training set
+
+        #res
+
+        #print "score for zero unlabeled", pipeline.score(coll_help.reuters.raw(unlabeled[0]), id_cat[unlabeled[0]])
+
+        #res = np.random.randint(0, len(unlabeled), gamma)
+
+        #print "gamma was:", gamma, "choice len", len(res)
+        #unlabeled_copy = list(unlabeled)
+        #for i in res:
+        #    try:
+        #        curTraining.append(unlabeled[i])
+        #        unlabeled_copy.pop(i)
+        #    except:
+        #        print "oops!", i, "unlabeled length", len(unlabeled)
+        #unlabeled = unlabeled_copy
+        #curTraining = list(set(curTraining) | set(res))
+        #unlabeled = list(set(unlabeled) - set(res))
+
+
+        #fit classifier
+        for i in range(0, 5):
+            mb = MultiLabelBinarizer()
+            pipeline.fit([coll_help.reuters.raw(id) for id in curTraining], mb.fit_transform([id_cat[id] for id in curTraining]))
+            predicted = pipeline.predict([coll_help.reuters.raw(id) for id in test_id])
+            pred =  np.array(mb.inverse_transform(predicted))
+            mb1 = MultiLabelBinarizer()
+            t_real = mb1.fit_transform([id_cat[id] for id in test_id])
+            t_pred = mb1.transform(pred)
+            score = f1_score(t_real, t_pred, average='micro')
+            scores.append(score)
+        final_score = sum(scores)/len(scores)
+        print "f1 final score train set", final_score, "train_set length", len(curTraining)
+
 
 
 #count f1 score using all training set as baseline
+print "start scoring without active"
+"""
 scores = []
 for i in range(0, 5):
+    print "current iter", i
     mb = MultiLabelBinarizer()
     pipeline.fit([coll_help.reuters.raw(id) for id in train_id], mb.fit_transform([id_cat[id] for id in train_id]))
     predicted = pipeline.predict([coll_help.reuters.raw(id) for id in test_id])
@@ -90,5 +167,13 @@ for i in range(0, 5):
     scores.append(score)
 final_score = sum(scores)/len(scores)
 print "f1 final score without active", final_score
+"""
+print "f1 final score without active", 0.761, "train_set length", len(train_id)
+
+print "start fitting random sampling"
 
 find_classifier()
+
+print "start fitting cluster sampling"
+
+find_classifier1()
