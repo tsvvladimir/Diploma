@@ -10,6 +10,7 @@ from sklearn.cluster import KMeans
 from collections import Counter
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
+from sklearn.cluster import AffinityPropagation
 import pickle
 import copy
 from numpy.random import choice
@@ -149,14 +150,16 @@ def find_classifier1():
         pipelinecluster = Pipeline([
             ('vect', CountVectorizer()),
             ('tfidf', TfidfTransformer()),
-            ('clusterer', KMeans(n_clusters=n_clusters)),])
+            #('clusterer', KMeans(n_clusters=n_clusters)),])
+            ('clusterer', AffinityPropagation()),])
 
-        labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
-        print labels
-        c = Counter(labels)
-        for cluster_number in range(n_clusters):
-            print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
-        print "cluster centers", pipelinecluster.named_steps['clusterer'].cluester_centers_
+
+        pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
+        #print labels
+        #c = Counter(labels)
+        #for cluster_number in range(n_clusters):
+        #    print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
+        print "cluster centers", pipelinecluster.named_steps['clusterer'].cluster_centers_indices_
 
 
         #fit classifier
@@ -196,7 +199,7 @@ print "f1 final score without active", 0.861722278887, "train_set length", len(t
 
 print "start fitting random sampling"
 
-find_classifier()
+#find_classifier()
 
 print "start fitting cluster sampling"
 
