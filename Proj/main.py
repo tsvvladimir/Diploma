@@ -159,7 +159,7 @@ def find_classifier1():
         #c = Counter(labels)
         #for cluster_number in range(n_clusters):
         #    print "cluster", cluster_number, "num elem in cluster", c[cluster_number]
-        print "cluster centers", pipelinecluster.named_steps['clusterer'].cluster_centers_indices_
+        print "cluster centers", len(pipelinecluster.named_steps['clusterer'].cluster_centers_indices_)
 
 
         #fit classifier
