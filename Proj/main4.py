@@ -26,6 +26,7 @@ pipeline = Pipeline([
 ])
 
 pipeline.fit(data.data, data.target)
+print data.target
 predicted = pipeline.predict(test_data.data)
 #print predicted
 #print test_data.target

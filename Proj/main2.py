@@ -7,6 +7,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from mlxtend.preprocessing import DenseTransformer
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import f1_score
+import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
 train_id = []
 test_id = []
@@ -27,22 +31,40 @@ for id in coll_help.reuters.fileids():
 #    ]
 #)
 
-classifier = Pipeline([
-    ('vectorizer', CountVectorizer()),
-    ('to_dense', DenseTransformer()),
+pipeline = Pipeline([
+    ('vect', CountVectorizer()),
     ('tfidf', TfidfTransformer()),
-    ('clf', OneVsRestClassifier(LinearSVC()))])
+    #('clf', OneVsRestClassifier(LinearSVC())),
+    ('clf', DecisionTreeClassifier()),
+])
+
+#test_id = test_id[:10]
 
 def func1():
     alpha = 100
-    betha = 20
+    betha = 200
     gamma = 50
     curTraining = train_id[:betha]
+    #test_id = curTraining
     unlabeled = train_id[betha:]
     #for t in range(0, betha):
         #representer = coll_help.tf_idf(train_docs)
-    classifier.fit([coll_help.reuters.raw(id) for id in curTraining], MultiLabelBinarizer().fit_transform([id_cat[id] for id in curTraining]))
-    predicted = classifier.predict([coll_help.reuters.raw(id) for id in test_id])
-    print predicted
+    mb = MultiLabelBinarizer()
+    #print "labels:", [tuple(id_cat[id]) for id in curTraining]
+    pipeline.fit([coll_help.reuters.raw(id) for id in curTraining], mb.fit_transform([id_cat[id] for id in curTraining]))
+    predicted = pipeline.predict([coll_help.reuters.raw(id) for id in test_id])
+    #print "predicted", predicted
+    print np.array(test_id)
+    pred =  np.array(mb.inverse_transform(predicted))
+    print "inverse predicted", pred
+    #print "classes", mb.classes_
+    mb1 = MultiLabelBinarizer()
+    t_real = mb1.fit_transform([id_cat[id] for id in test_id])
+    t_pred = mb1.transform(pred)
+    print "f1 score", f1_score(t_real, t_pred, average='micro')
+    # mb.fit_transform([id_cat[id] for id in test_id])
+    #print f1_score(mb.fit_transform([id_cat[id] for id in test_id]), predicted, average='macro')
+    #print pipeline.score(mb.fit_transform([id_cat[id] for id in test_id]), predicted)
 
+#print f1_score([(1, 2)], [(1)], average='samples')
 func1()
