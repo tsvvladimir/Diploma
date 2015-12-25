@@ -5,6 +5,8 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score
 import numpy as np
+from sklearn.neighbors.nearest_centroid import NearestCentroid
+from sklearn.cluster import MeanShift
 from sklearn.tree import DecisionTreeClassifier
 from collections import defaultdict
 from sklearn.cluster import KMeans
@@ -15,6 +17,7 @@ from sklearn.cluster import AffinityPropagation
 import pickle
 import copy
 from numpy.random import choice
+
 
 train_id = []
 test_id = []
@@ -152,11 +155,25 @@ def find_classifier1():
         pipelinecluster = Pipeline([
             ('vect', CountVectorizer()),
             ('tfidf', TfidfTransformer()),
-            ('clusterer', KMeans(n_clusters=n_clusters)),])
+            ])
+            #('clusterer', KMeans(n_clusters=n_clusters)),])
+            #('clusterer', NearestCentroid()),])
+            #('clusterer', MeanShift()),])
             #('clusterer', AffinityPropagation()),])
+        #convert to tfidf matrix
+        matr = pipelinecluster.fit_transform([coll_help.reuters.raw(id) for id in unlabeled])
+        print matr.todense()
+        print matr.todense().shape
+        #print pipelinecluster.inverse_transform(matr)
+
+        #labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
 
 
-        labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
+
+        #predict = pipelinecluster.fit([coll_help.reuters.raw(id) for id in unlabeled], [id_cat[id] for id in unlabeled]).predict([coll_help.reuters.raw(id) for id in unlabeled])
+        #print "predict", predict
+        #print "score:", pipelinecluster.predict(coll_help.reuters.raw(unlabeled[20]))
+
         #print labels
         c = Counter(labels)
         #for cluster_number in range(n_clusters):
@@ -229,7 +246,7 @@ print "f1 final score without active", 0.861722278887, "train_set length", len(t
 
 print "start fitting random sampling"
 
-find_classifier()
+#find_classifier()
 
 print "start fitting cluster sampling"
 
