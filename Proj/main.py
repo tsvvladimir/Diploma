@@ -43,7 +43,7 @@ pipeline = Pipeline([
 
 def find_classifier():
     alpha = 100 #initial training set
-    betha = 20 #number of iterations
+    betha = 154 #number of iterations
     gamma = 50 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
@@ -258,8 +258,8 @@ print "f1 final score without active", 0.861722278887, "train_set length", len(t
 
 print "start fitting random sampling"
 
-#find_classifier()
+find_classifier()
 
 print "start fitting cluster sampling"
 
-find_classifier1()
+#find_classifier1()
