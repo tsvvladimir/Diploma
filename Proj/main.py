@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score
 import numpy as np
+from k_medoids_ import KMedoids
 from sklearn.neighbors.nearest_centroid import NearestCentroid
 from sklearn.cluster import MeanShift
 from sklearn.tree import DecisionTreeClassifier
@@ -155,15 +156,26 @@ def find_classifier1():
         pipelinecluster = Pipeline([
             ('vect', CountVectorizer()),
             ('tfidf', TfidfTransformer()),
-            ])
+            ('clusterer', KMedoids(n_clusters=n_clusters)),])
+            #])
             #('clusterer', KMeans(n_clusters=n_clusters)),])
             #('clusterer', NearestCentroid()),])
             #('clusterer', MeanShift()),])
             #('clusterer', AffinityPropagation()),])
         #convert to tfidf matrix
-        matr = pipelinecluster.fit_transform([coll_help.reuters.raw(id) for id in unlabeled])
-        print matr.todense()
-        print matr.todense().shape
+        #matr = pipelinecluster.fit_transform()
+        matr0 = [coll_help.reuters.raw(id) for id in unlabeled]
+        print "data shape", len(matr0)
+        matr1 = CountVectorizer().fit_transform(matr0)
+        print "Bectorizerfinished"
+        matr2 = TfidfTransformer().fit_transform(matr1)
+        print "Tfidf finished"
+        km = KMedoids(n_clusters=n_clusters)
+        matr3 = km.fit_transform(matr2.todense())
+        print "medoids finished"
+        print matr3 #.todense()
+        print "centers shape", km.cluster_centers_.shape
+        #print km._get_initial_medoid_indices(matr2.todense(), 30)
         #print pipelinecluster.inverse_transform(matr)
 
         #labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
