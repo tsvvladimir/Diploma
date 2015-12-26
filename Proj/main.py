@@ -43,7 +43,7 @@ pipeline = Pipeline([
 
 def find_classifier():
     alpha = 100 #initial training set
-    betha = 154 #number of iterations
+    betha = 40#154 #number of iterations
     gamma = 50 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
@@ -111,7 +111,7 @@ pipeline = Pipeline([
 def find_classifier1():
     alpha = 100 #initial training set
     betha = 20 #number of iterations
-    gamma = 50 #number of sampling
+    gamma = 120 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
 
@@ -128,7 +128,7 @@ def find_classifier1():
     score = f1_score(t_real, t_pred, average='micro')
     scores.append(score)
     final_score = sum(scores)/len(scores)
-    print "random sampling f1 final score train set", final_score, "train_set length", len(curTraining)
+    print "f1 final score train set", final_score, "train_set length", len(curTraining)
 
     for t in range(1, betha):
         scores = []
@@ -152,33 +152,33 @@ def find_classifier1():
         #curTraining = list(set(curTraining) | set(res))
         #unlabeled = list(set(unlabeled) - set(res))
 
-        n_clusters = 10
+        n_clusters = 60
         pipelinecluster = Pipeline([
             ('vect', CountVectorizer()),
             ('tfidf', TfidfTransformer()),
-            ('clusterer', KMedoids(n_clusters=n_clusters)),])
+            #('clusterer', KMedoids(n_clusters=n_clusters)),])
             #])
-            #('clusterer', KMeans(n_clusters=n_clusters)),])
+            ('clusterer', KMeans(n_clusters=n_clusters)),])
             #('clusterer', NearestCentroid()),])
             #('clusterer', MeanShift()),])
             #('clusterer', AffinityPropagation()),])
         #convert to tfidf matrix
         #matr = pipelinecluster.fit_transform()
-        matr0 = [coll_help.reuters.raw(id) for id in unlabeled]
-        print "data shape", len(matr0)
-        matr1 = CountVectorizer().fit_transform(matr0)
-        print "Bectorizerfinished"
-        matr2 = TfidfTransformer().fit_transform(matr1)
-        print "Tfidf finished"
-        km = KMedoids(n_clusters=n_clusters)
-        matr3 = km.fit_transform(matr2.todense())
-        print "medoids finished"
-        print matr3 #.todense()
-        print "centers shape", km.cluster_centers_.shape
+        #matr0 = [coll_help.reuters.raw(id) for id in unlabeled]
+        #print "data shape", len(matr0)
+        #matr1 = CountVectorizer().fit_transform(matr0)
+        #print "Bectorizerfinished"
+        #matr2 = TfidfTransformer().fit_transform(matr1)
+        #print "Tfidf finished"
+        #km = KMedoids(n_clusters=n_clusters)
+        #matr3 = km.fit_transform(matr2.todense())
+        #print "medoids finished"
+        #print matr3 #.todense()
+        #print "centers shape", km.cluster_centers_.shape
         #print km._get_initial_medoid_indices(matr2.todense(), 30)
         #print pipelinecluster.inverse_transform(matr)
 
-        #labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
+        labels = pipelinecluster.fit_predict([coll_help.reuters.raw(id) for id in unlabeled])
 
 
 
@@ -233,15 +233,15 @@ def find_classifier1():
         score = f1_score(t_real, t_pred, average='micro')
         scores.append(score)
         final_score = sum(scores)/len(scores)
-        print "cluster sampling f1 final score train set", final_score, "train_set length", len(curTraining)
+        print "f1 final score train set", final_score, "train_set length", len(curTraining)
 
 
 
 #count f1 score using all training set as baseline
 print "start scoring without active"
-'''
+
 scores = []
-print "current iter", i
+#print "current iter", i
 mb = MultiLabelBinarizer()
 pipeline.fit([coll_help.reuters.raw(id) for id in train_id], mb.fit_transform([id_cat[id] for id in train_id]))
 predicted = pipeline.predict([coll_help.reuters.raw(id) for id in test_id])
@@ -252,9 +252,9 @@ t_pred = mb1.transform(pred)
 score = f1_score(t_real, t_pred, average='micro')
 scores.append(score)
 final_score = sum(scores)/len(scores)
-print "f1 final score without active", final_score
-'''
-print "f1 final score without active", 0.861722278887, "train_set length", len(train_id)
+print "f1 final score without active", final_score, "train_set length", len(train_id)
+
+#print "f1 final score without active", 0.861722278887, "train_set length", len(train_id)
 
 print "start fitting random sampling"
 
@@ -262,4 +262,4 @@ find_classifier()
 
 print "start fitting cluster sampling"
 
-#find_classifier1()
+find_classifier1()
