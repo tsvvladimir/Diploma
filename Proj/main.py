@@ -33,7 +33,9 @@ for id in coll_help.reuters.fileids():
     else:
         test_id.append(id)
 
-print len(id_cat)
+print "all:", len(id_cat)
+print "traing", len(train_id)
+print "test", len(test_id)
 
 pipeline = Pipeline([
     ('vect', CountVectorizer()),
@@ -111,7 +113,7 @@ pipeline = Pipeline([
 
 def find_classifier1():
     alpha = 100 #initial training set
-    betha = 20 #number of iterations
+    betha = 200 #number of iterations
     #gamma = 240 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
