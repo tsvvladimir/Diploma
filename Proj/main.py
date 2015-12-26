@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score
 import numpy as np
+import math
 from k_medoids_ import KMedoids
 from sklearn.neighbors.nearest_centroid import NearestCentroid
 from sklearn.cluster import MeanShift
@@ -43,7 +44,7 @@ pipeline = Pipeline([
 
 def find_classifier():
     alpha = 100 #initial training set
-    betha = 40#154 #number of iterations
+    betha = 154 #number of iterations
     gamma = 50 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
@@ -111,7 +112,7 @@ pipeline = Pipeline([
 def find_classifier1():
     alpha = 100 #initial training set
     betha = 20 #number of iterations
-    gamma = 120 #number of sampling
+    #gamma = 240 #number of sampling
     curTraining = train_id[:alpha]
     unlabeled = train_id[alpha:]
 
@@ -152,7 +153,7 @@ def find_classifier1():
         #curTraining = list(set(curTraining) | set(res))
         #unlabeled = list(set(unlabeled) - set(res))
 
-        n_clusters = 60
+        n_clusters = int(round(math.sqrt(len(unlabeled) / 2.0)))
         pipelinecluster = Pipeline([
             ('vect', CountVectorizer()),
             ('tfidf', TfidfTransformer()),
@@ -205,7 +206,7 @@ def find_classifier1():
 
         res = []
         for value in clust_idx.itervalues():
-            res.extend(choice(value, min(gamma / n_clusters, len(value))))
+            res.extend(choice(value, min(10, len(value))))
 
         #print "res", res
 
